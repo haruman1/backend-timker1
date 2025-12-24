@@ -5,40 +5,48 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' }).group(
   '/penyakit',
   (app) =>
     app
-      .get('data/menular', async ({ headers }) => {
-        const apiKey = headers['x-api-key'];
-        if (apiKey !== process.env.WEBHOOK_KEY) {
-          return {
-            success: false,
-            message: 'Unauthorized Access',
-          };
-        }
-        try {
-          const result = await query(
-            'SELECT kategori_penyakit, COUNT(*) as total FROM pasien_ambulan WHERE kategori_penyakit = ? GROUP BY kategori_penyakit',
-            ['Menular']
-          );
-          if (result.length === 0) {
+      .get(
+        'data/menular',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
             return {
-              success: true,
-              message: 'Tidak ada penyakit menular ditemukan',
-              data: [],
+              success: false,
+              message: 'Unauthorized Access',
             };
           }
-          if (result.length > 0) {
+          try {
+            const result = await query(
+              'SELECT kategori_penyakit, COUNT(*) as total FROM pasien_ambulan WHERE kategori_penyakit = ? GROUP BY kategori_penyakit',
+              ['Menular']
+            );
+            if (result.length === 0) {
+              return {
+                success: true,
+                message: 'Tidak ada penyakit menular ditemukan',
+                data: [],
+              };
+            }
+            if (result.length > 0) {
+              return {
+                success: true,
+                message: 'Data Penyakit Menular Ditemukan',
+                data: result,
+              };
+            }
+          } catch (error) {
             return {
-              success: true,
-              message: 'Data Penyakit Menular Ditemukan',
-              data: result,
+              success: false,
+              message: 'Terjadi kesalahan pada server',
             };
           }
-        } catch (error) {
-          return {
-            success: false,
-            message: 'Terjadi kesalahan pada server',
-          };
+        },
+        {
+          headers: t.Object({
+            'x-api-key': t.String(),
+          }),
         }
-      })
+      )
       .get(
         'data/pemeriksaan-labs/:nama-test',
         async ({ headers, params }) => {
