@@ -1,0 +1,9 @@
+data penyakit pertanggal perhari / per 7 hari dan 1  tahun
+tren penyyakit
+pembagian penyakit / nama penyakit
+
+grafik penyakit menuular paling tertinggi
+grafik penyakit tidak menular paling tertinggi
+grafik penyakit top 5 paling tinggi
+
+grafik pemeriksaan labs
