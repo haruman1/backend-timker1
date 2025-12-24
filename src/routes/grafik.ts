@@ -1,13 +1,60 @@
 import { Elysia, t } from 'elysia';
 import { query } from '../../mysql.config';
 
-export const grafikRoutes = new Elysia({ prefix: '/grafik' }).group(
-  '/penyakit',
-  (app) =>
+export const grafikRoutes = new Elysia({ prefix: '/grafik' })
+  .group('/vaksinasi', (app) =>
+    app.get(
+      'data/:from/:to',
+      async ({ headers, params }) => {
+        const { from, to } = params;
+        const apiKey = headers['x-api-key'];
+        if (apiKey !== process.env.WEBHOOK_KEY) {
+          return {
+            success: false,
+            message: 'Unauthorized Access',
+          };
+        }
+        try {
+          const result = await query(
+            'SELECT DATE(created_at) AS tanggal, jenis_vaksin, COUNT(*) AS total FROM pasien_ambulan WHERE DATE(created_at) BETWEEN ? AND ? AND jenis_vaksin IS NOT NULL GROUP BY DATE(created_at), jenis_vaksin ORDER BY tanggal ASC;',
+            [from, to]
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data vaksinasi ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Success mengambil data vaksinasi',
+              data: result,
+            };
+          }
+        } catch (error) {
+          return {
+            success: false,
+            message: 'Terjadi kesalahan pada server',
+          };
+        }
+      },
+      {
+        headers: t.Object({ 'x-api-key': t.String() }),
+        params: t.Object({
+          from: t.String(),
+          to: t.String(),
+        }),
+      }
+    )
+  )
+  .group('/penyakit', (app) =>
     app
       .get(
-        'data/menular',
-        async ({ headers }) => {
+        'data/menular/:from/:to',
+        async ({ headers, params }) => {
+          const { from, to } = params;
           const apiKey = headers['x-api-key'];
           if (apiKey !== process.env.WEBHOOK_KEY) {
             return {
@@ -17,8 +64,8 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' }).group(
           }
           try {
             const result = await query(
-              'SELECT kategori_penyakit, COUNT(*) as total FROM pasien_ambulan WHERE kategori_penyakit = ? GROUP BY kategori_penyakit',
-              ['Menular']
+              'SELECT DATE(created_at) AS tanggal, kategori_penyakit, COUNT(*) AS total FROM pasien_ambulan WHERE DATE(created_at) BETWEEN ? AND ? AND kategori_penyakit = ? GROUP BY DATE(created_at), kategori_penyakit ORDER BY tanggal ASC;',
+              [from, to, 'Menular']
             );
             if (result.length === 0) {
               return {
@@ -141,4 +188,4 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' }).group(
         );
         return result;
       })
-);
+  );
