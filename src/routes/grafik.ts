@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { query } from '../../mysql.config';
 
 export const grafikRoutes = new Elysia({ prefix: '/grafik' }).group(
-  'penyakit',
+  '/penyakit',
   (app) =>
     app
       .get('data/menular', async ({ headers }) => {
