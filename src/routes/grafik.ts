@@ -52,6 +52,62 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' })
   .group('/penyakit', (app) =>
     app
       .get(
+        'data/total/:from/:to',
+        async ({ headers, params }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const { from, to } = params;
+          try {
+            const result = await query(
+              'SELECT DATE(created_at) AS tanggal, kategori_penyakit, COUNT(*) AS total FROM pasien_ambulan WHERE DATE(created_at) BETWEEN ? AND ? GROUP BY DATE(created_at), kategori_penyakit ORDER BY tanggal ASC;',
+              [from, to]
+            );
+            if (result.length === 0) {
+              return {
+                success: true,
+                message: 'Tidak ada data penyakit ditemukan',
+                data: [],
+              };
+            }
+            if (result.length > 0) {
+              return {
+                success: true,
+                message: 'Data Penyakit Ditemukan',
+                data: result.map(
+                  (item: {
+                    tanggal: any;
+                    kategori_penyakit: any;
+                    total: any;
+                  }) => ({
+                    day: item.tanggal,
+                    kategori_penyakit: item.kategori_penyakit,
+                    total: item.total,
+                  })
+                ),
+              };
+            }
+          } catch (error) {
+            return {
+              success: false,
+              message: 'Terjadi kesalahan pada server',
+            };
+          }
+          // const { from, to } = params;
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+          params: t.Object({
+            from: t.String(),
+            to: t.String(),
+          }),
+        }
+      )
+      .get(
         'data/menular/:from/:to',
         async ({ headers, params }) => {
           const { from, to } = params;

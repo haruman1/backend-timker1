@@ -13,51 +13,63 @@ export const warningRoutes = new Elysia({ prefix: '/warning' })
           message: 'Unauthorized access',
         });
       }
-      try {
-        const results = await query(
-          'SELECT * FROM ambulan WHERE deleted_at IS NULL ORDER BY id DESC'
-        );
-        if (results.length === 0) {
-          return {
-            success: true,
-            message: 'Tidak ada ambulan ditemukan',
-            data: [],
-          };
-        }
-        if (results.length > 0) {
-          return {
-            success: true,
-            message: 'Success mengambil data ambulans',
-            data: results.map((item: any) => ({
-              tanggal: item.tanggal,
-              jam: item.jam,
-              nama: item.nama,
-              usia: item.usia,
-              jenisKelamin: item.jenis_kelamin,
-              status: item.status,
-              noPenerbangan: item.no_penerbangan,
-              instansi: item.instansi,
-              anamnesa: item.anamnesa,
-              diagnosa: item.diagnosa,
-              tujuan: item.tujuan,
-              rsTujuan: item.rs_tujuan,
-              noAmbulance: item.no_ambulance,
-              noBilling: item.no_billing,
-              totalBayar: item.total_bayar,
-              tanggalBayar: item.tanggal_bayar,
-              petugas: item.petugas,
-            })),
-          };
-        }
-      } catch (error) {
-        return setStatus(500, {
-          success: false,
-          message: 'Internal server error',
-        });
+      const data = await query(`
+      SELECT
+        id,
+        lokasi,
+        nama_pasien,
+        kategori_penyakit,
+        status_pasien,
+        usia,
+        hasil_antigen,
+        pemeriksaan_lab,
+        tindak_ambulan,
+        tujuan_rumah_sakit,
+        created_at as tanggal,
+        CASE
+          WHEN kategori_penyakit = 'Menular'
+               AND hasil_antigen = 'Positif'
+            THEN 'CRITICAL'
+          WHEN status_pasien = 'Gawat Darurat'
+            THEN 'CRITICAL'
+          WHEN kategori_penyakit = 'Menular'
+               AND usia >= 60
+            THEN 'HIGH'
+          WHEN pemeriksaan_lab = 'Pending'
+            THEN 'MEDIUM'
+          ELSE 'LOW'
+        END AS severity,
+        CASE
+          WHEN tujuan_rumah_sakit IS NOT NULL
+            THEN 'RESOLVED'
+          WHEN tindak_ambulan IS NOT NULL
+            THEN 'IN PROGRESS'
+          ELSE 'ACTIVE'
+        END AS alert_status
+      FROM pasien_ambulan
+      WHERE deleted_at IS NULL
+      ORDER BY created_at DESC
+      LIMIT 20
+    `);
+
+      if (data.length === 0) {
+        return {
+          success: true,
+          message: 'No warnings found',
+          data: [],
+        };
       }
+
+      return {
+        success: true,
+        message: 'Warnings retrieved successfully',
+        data: data,
+      };
     },
     {
-      headers: t.Object({ 'x-api-key': t.String() }),
+      headers: t.Object({
+        'x-api-key': t.String(),
+      }),
     }
   )
   .post(
