@@ -49,7 +49,6 @@ export const warningRoutes = new Elysia({ prefix: '/warning' })
       FROM pasien_ambulan
       WHERE deleted_at IS NULL
       ORDER BY created_at DESC
-      LIMIT 20
     `);
 
       if (data.length === 0) {
