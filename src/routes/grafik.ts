@@ -11,6 +11,44 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' })
   .group('/vaksinasi', (app) =>
     app
       .get(
+        '/all/:from/:to',
+        async ({ headers, params }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const { from, to } = params;
+          const result = await query(
+            'SELECT jenis_vaksinasi, DATE(created_at) AS tanggal, COUNT(*) AS total FROM pasien_ambulan WHERE DATE(created_at) BETWEEN ? AND ? GROUP BY DATE(created_at), jenis_vaksinasi ORDER BY tanggal ASC;',
+            [from, to]
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data vaksinasi ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data Vaksinasi Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+          params: t.Object({
+            from: t.String(),
+            to: t.String(),
+          }),
+        }
+      )
+      .get(
         '/meningitis-meningococcus',
         async ({ headers }) => {
           const apiKey = headers['x-api-key'];
