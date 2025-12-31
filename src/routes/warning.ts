@@ -22,9 +22,9 @@ export const warningRoutes = new Elysia({ prefix: '/warning' })
         status_pasien,
         usia,
         hasil_antigen,
-        pemeriksaan_lab,
-        tindak_ambulan,
-        tujuan_rumah_sakit,
+        pemeriksaan_laboratorium,
+        tindakan_ambulan,
+        tujuan_rumah_sakit_rujukan,
         created_at as tanggal,
         CASE
           WHEN kategori_penyakit = 'Menular'
@@ -35,14 +35,14 @@ export const warningRoutes = new Elysia({ prefix: '/warning' })
           WHEN kategori_penyakit = 'Menular'
                AND usia >= 60
             THEN 'HIGH'
-          WHEN pemeriksaan_lab = 'Pending'
+          WHEN pemeriksaan_laboratorium = 'Pending'
             THEN 'MEDIUM'
           ELSE 'LOW'
         END AS severity,
         CASE
-          WHEN tujuan_rumah_sakit IS NOT NULL
+          WHEN tujuan_rumah_sakit_rujukan IS NOT NULL
             THEN 'RESOLVED'
-          WHEN tindak_ambulan IS NOT NULL
+          WHEN tindakan_ambulan IS NOT NULL
             THEN 'IN PROGRESS'
           ELSE 'ACTIVE'
         END AS alert_status
