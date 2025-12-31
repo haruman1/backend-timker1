@@ -16,27 +16,15 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
         }
         try {
           const data = await query(
-            `INSERT INTO form_responses_ambulan (
-          timestamp,
-          lokasi,
-          no_rme,
-          tanggal,
-          jam,
-          nama_pasien,
-          jenis_kelamin,
-          usia,
-          status_pasien,
-          nik_paspor,
-          alamat,
-          no_telpon,
-          anamnesa,
-          diagnosa,
-          kategori_penyakit,
-          kode_penyakit,
-          dokumen_karantina
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO pasien_ambulan (
+  timestamp, lokasi, no_rme, tanggal, jam, nama_pasien,
+  jenis_kelamin, usia, status_pasien, nik_paspor, alamat, no_telepon,
+  tujuan_rumah_sakit_rujukan, petugas, nip_petugas,
+  anamnesa, diagnosa, kategori_penyakit, kode_penyakit,
+  dokumen_karantina, pemeriksaan_laboratorium, pemeriksaan_swab,
+  hasil_antigen, jenis_vaksinasi, tindakan_ambulan
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              body.timestamp,
               body.lokasi,
               body.no_rme,
               body.tanggal,
@@ -48,17 +36,25 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
               body.nik_paspor,
               body.alamat,
               body.no_telpon,
+              body.tujuan_rumah_sakit_rujukan,
+              body.petugas,
+              body.nip_petugas,
               body.anamnesa,
               body.diagnosa,
               body.kategori_penyakit,
               body.kode_penyakit,
               body.dokumen_karantina,
+              body.pemeriksaan_laboratorium,
+              body.pemeriksaan_swab,
+              body.hasil_antigen,
+              body.jenis_vaksinasi,
+              body.tindakan_ambulan,
             ]
           );
           return {
             success: true,
             message: 'Data berhasil disimpan',
-            data,
+            data: data,
           };
         } catch (error) {
           return {
@@ -70,7 +66,6 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
       },
       {
         body: t.Object({
-          timestamp: t.String(),
           lokasi: t.String(),
           no_rme: t.String(),
           tanggal: t.String(),
@@ -82,12 +77,21 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
           nik_paspor: t.String(),
           alamat: t.String(),
           no_telpon: t.String(),
+          tujuan_rumah_sakit_rujukan: t.String(),
+          petugas: t.String(),
+          nip_petugas: t.String(),
           anamnesa: t.String(),
           diagnosa: t.String(),
           kategori_penyakit: t.String(),
           kode_penyakit: t.String(),
           dokumen_karantina: t.String(),
+          pemeriksaan_laboratorium: t.String(),
+          pemeriksaan_swab: t.String(),
+          hasil_antigen: t.String(),
+          jenis_vaksinasi: t.String(),
+          tindakan_ambulan: t.String(),
         }),
+        headers: t.Object({ 'x-api-key': t.String() }),
       }
     )
 );

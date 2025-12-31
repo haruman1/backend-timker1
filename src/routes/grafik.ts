@@ -484,10 +484,4 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' })
           }),
         }
       )
-      .get('data/top-5', async () => {
-        const result = await query(
-          'SELECT kategori_penyakit, COUNT(*) as total FROM pasien_ambulan GROUP BY kategori_penyakit ORDER BY total DESC LIMIT 5'
-        );
-        return result;
-      })
   );
