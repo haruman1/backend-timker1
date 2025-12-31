@@ -5,28 +5,38 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
   '/sheet',
   (app) =>
     app.post(
-      '/data',
-      async ({ headers, body }) => {
+      '/timker1',
+      async ({ body, headers, set }) => {
         const apiKey = headers['x-api-key'];
         if (apiKey !== process.env.WEBHOOK_KEY) {
           return {
             success: false,
-            message: 'Unauthorized Access',
+            message: 'Unauthorized access',
           };
         }
-
         try {
-          await query(
-            `INSERT INTO pasien_ambulan (
-          lokasi, no_rme, tanggal, jam,
-          nama_pasien, jenis_kelamin, usia,
-          status_pasien, anamnesa, diagnosa,
-          tindak_ambulan, nik_paspor, alamat,
-          no_hp, kategori_penyakit, kode_penyakit,
-          pemeriksaan_lab, pemeriksaan_swab,
-          jenis, petugas, nip_petugas
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          const data = await query(
+            `INSERT INTO form_responses_ambulan (
+          timestamp,
+          lokasi,
+          no_rme,
+          tanggal,
+          jam,
+          nama_pasien,
+          jenis_kelamin,
+          usia,
+          status_pasien,
+          nik_paspor,
+          alamat,
+          no_telpon,
+          anamnesa,
+          diagnosa,
+          kategori_penyakit,
+          kode_penyakit,
+          dokumen_karantina
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+              body.timestamp,
               body.lokasi,
               body.no_rme,
               body.tanggal,
@@ -35,60 +45,48 @@ export const formRoutes = new Elysia({ prefix: '/form' }).group(
               body.jenis_kelamin,
               body.usia,
               body.status_pasien,
-              body.anamnesa,
-              body.diagnosa,
-              body.tindak_ambulan,
               body.nik_paspor,
               body.alamat,
-              body.no_hp,
+              body.no_telpon,
+              body.anamnesa,
+              body.diagnosa,
               body.kategori_penyakit,
               body.kode_penyakit,
-              body.pemeriksaan_lab,
-              body.pemeriksaan_swab,
-              body.jenis,
-              body.petugas,
-              body.nip_petugas,
+              body.dokumen_karantina,
             ]
           );
-
           return {
             success: true,
-            message: 'Data pasien ambulan berhasil ditambahkan',
+            message: 'Data berhasil disimpan',
+            data,
           };
         } catch (error) {
-          console.error(error);
           return {
             success: false,
-            message: 'Internal server error',
+            message: 'Terjadi kesalahan',
+            error,
           };
         }
       },
       {
-        headers: t.Object({
-          'x-api-key': t.String(),
-        }),
         body: t.Object({
+          timestamp: t.String(),
           lokasi: t.String(),
           no_rme: t.String(),
           tanggal: t.String(),
           jam: t.String(),
           nama_pasien: t.String(),
           jenis_kelamin: t.String(),
-          usia: t.Optional(t.Number()),
+          usia: t.Number(),
           status_pasien: t.String(),
-          anamnesa: t.String(),
-          diagnosa: t.String(),
-          tindak_ambulan: t.String(),
           nik_paspor: t.String(),
           alamat: t.String(),
-          no_hp: t.String(),
+          no_telpon: t.String(),
+          anamnesa: t.String(),
+          diagnosa: t.String(),
           kategori_penyakit: t.String(),
           kode_penyakit: t.String(),
-          pemeriksaan_lab: t.String(),
-          pemeriksaan_swab: t.String(),
-          jenis: t.String(),
-          petugas: t.String(),
-          nip_petugas: t.String(),
+          dokumen_karantina: t.String(),
         }),
       }
     )

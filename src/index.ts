@@ -15,7 +15,7 @@ const app = new Elysia()
       return { success: false, message: 'Unauthorized Access' };
     }
     if (code === 'NOT_FOUND') {
-      return { success: false, message: 'Unauthorized Access' };
+      return { success: false, message: 'Route Not Found' };
     }
     if (error instanceof Error) {
       return { success: false, message: error.message };
@@ -24,7 +24,7 @@ const app = new Elysia()
   })
   .use(
     cors({
-      origin: ['*'],
+      origin: '*', // ⚠️ di Node lebih aman pakai string
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
       credentials: true,
@@ -32,4 +32,7 @@ const app = new Elysia()
   )
   .use(openapi());
 
+// 🔴 WAJIB ADA INI
 export default app;
+
+console.log('Elysia running on port', process.env.PORT || 8080);

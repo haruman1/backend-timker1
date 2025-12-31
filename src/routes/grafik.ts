@@ -2,11 +2,49 @@ import { Elysia, t } from 'elysia';
 import { query } from '../../mysql.config';
 
 export const grafikRoutes = new Elysia({ prefix: '/grafik' })
+  .get('/diagnosa', async () => {
+    const result = await query(
+      'SELECT DIAGNOSA, DATE(created_at) AS tanggal, COUNT(*) AS total FROM pasien_ambulan = ? GROUP BY DATE(created_at) ORDER BY tanggal ASC'
+    );
+    return result;
+  })
   .group('/vaksinasi', (app) =>
-    app.get(
-      'data/:from/:to',
-      async ({ headers, params }) => {
-        const { from, to } = params;
+    app
+      .get(
+        '/meningitis-meningococcus',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const result = await query(
+            'SELECT jenis_vaksinasi, COUNT(*) AS total FROM pasien_ambulan WHERE jenis_vaksinasi = ? GROUP BY jenis_vaksinasi',
+            ['meningitis-meningococcus']
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message:
+                'Tidak ada data vaksinasi meningitis-meningococcus ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data Vaksinasi Meningitis-Meningococcus Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+        }
+      )
+      .get('yellow-fever', async ({ headers }) => {
         const apiKey = headers['x-api-key'];
         if (apiKey !== process.env.WEBHOOK_KEY) {
           return {
@@ -14,40 +52,248 @@ export const grafikRoutes = new Elysia({ prefix: '/grafik' })
             message: 'Unauthorized Access',
           };
         }
-        try {
+        const result = await query(
+          'SELECT jenis_vaksinasi, COUNT(*) AS total FROM pasien_ambulan WHERE jenis_vaksinasi = ? GROUP BY jenis_vaksinasi',
+          ['yellow-fever']
+        );
+        if (result.length === 0) {
+          return {
+            success: true,
+            message: 'Tidak ada data vaksinasi yellow fever ditemukan',
+            data: [],
+          };
+        }
+        if (result.length > 0) {
+          return {
+            success: true,
+            message: 'Data Vaksinasi Yellow Fever Ditemukan',
+            data: result,
+          };
+        }
+      })
+      .get('/polio', async ({ headers }) => {
+        const apiKey = headers['x-api-key'];
+        if (apiKey !== process.env.WEBHOOK_KEY) {
+          return {
+            success: false,
+            message: 'Unauthorized Access',
+          };
+        }
+        const result = await query(
+          'SELECT jenis_vaksinasi, COUNT(*) AS total FROM pasien_ambulan WHERE jenis_vaksinasi = ? GROUP BY jenis_vaksinasi',
+          ['polio']
+        );
+        if (result.length === 0) {
+          return {
+            success: true,
+            message: 'Tidak ada data vaksinasi polio ditemukan',
+            data: [],
+          };
+        }
+        if (result.length > 0) {
+          return {
+            success: true,
+            message: 'Data Vaksinasi Polio Ditemukan',
+            data: result,
+          };
+        }
+      })
+      .get('/influenza', async ({ headers }) => {
+        const apiKey = headers['x-api-key'];
+        if (apiKey !== process.env.WEBHOOK_KEY) {
+          return {
+            success: false,
+            message: 'Unauthorized Access',
+          };
+        }
+        const result = await query(
+          'SELECT jenis_vaksinasi, COUNT(*) AS total FROM pasien_ambulan WHERE jenis_vaksinasi = ? GROUP BY jenis_vaksinasi',
+          ['influenza']
+        );
+        if (result.length === 0) {
+          return {
+            success: true,
+            message: 'Tidak ada data vaksinasi influenza ditemukan',
+            data: [],
+          };
+        }
+        if (result.length > 0) {
+          return {
+            success: true,
+            message: 'Data Vaksinasi Influenza Ditemukan',
+            data: result,
+          };
+        }
+      })
+  )
+
+  .group('/laboratorium', (app) =>
+    app
+      .get(
+        '/gds',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
           const result = await query(
-            'SELECT DATE(created_at) AS tanggal, jenis_vaksin, COUNT(*) AS total FROM pasien_ambulan WHERE DATE(created_at) BETWEEN ? AND ? AND jenis_vaksin IS NOT NULL GROUP BY DATE(created_at), jenis_vaksin ORDER BY tanggal ASC;',
-            [from, to]
+            'SELECT pemeriksaan_lab, COUNT(*) AS total FROM pasien_ambulan WHERE pemeriksaan_lab = ? GROUP BY pemeriksaan_lab',
+            ['GDS']
           );
           if (result.length === 0) {
             return {
               success: true,
-              message: 'Tidak ada data vaksinasi ditemukan',
+              message: 'Tidak ada data GDS ditemukan',
               data: [],
             };
           }
           if (result.length > 0) {
             return {
               success: true,
-              message: 'Success mengambil data vaksinasi',
+              message: 'Data GDS Ditemukan',
               data: result,
             };
           }
-        } catch (error) {
-          return {
-            success: false,
-            message: 'Terjadi kesalahan pada server',
-          };
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
         }
-      },
-      {
-        headers: t.Object({ 'x-api-key': t.String() }),
-        params: t.Object({
-          from: t.String(),
-          to: t.String(),
-        }),
-      }
-    )
+      )
+      .get(
+        '/HB',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const result = await query(
+            'SELECT pemeriksaan_lab, COUNT(*) AS total FROM pasien_ambulan WHERE pemeriksaan_lab = ? GROUP BY pemeriksaan_lab',
+            ['HB']
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data HB ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data HB Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+        }
+      )
+      .get(
+        '/cholesterol',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const result = await query(
+            'SELECT pemeriksaan_lab, COUNT(*) AS total FROM pasien_ambulan WHERE pemeriksaan_lab = ? GROUP BY pemeriksaan_lab',
+            ['Cholesterol']
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data Cholesterol ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data Cholesterol Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+        }
+      )
+      .get(
+        '/asam-urat',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const result = await query(
+            'SELECT pemeriksaan_lab, COUNT(*) AS total FROM pasien_ambulan WHERE pemeriksaan_lab = ? GROUP BY pemeriksaan_lab',
+            ['Asam Urat']
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data Asam Urat ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data Asam Urat Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+        }
+      )
+      .get(
+        '/test-kehamilan',
+        async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+          if (apiKey !== process.env.WEBHOOK_KEY) {
+            return {
+              success: false,
+              message: 'Unauthorized Access',
+            };
+          }
+          const result = await query(
+            'SELECT pemeriksaan_lab, COUNT(*) AS total FROM pasien_ambulan WHERE pemeriksaan_lab = ? GROUP BY pemeriksaan_lab',
+            ['Test Kehamilan']
+          );
+          if (result.length === 0) {
+            return {
+              success: true,
+              message: 'Tidak ada data Test Kehamilan ditemukan',
+              data: [],
+            };
+          }
+          if (result.length > 0) {
+            return {
+              success: true,
+              message: 'Data Test Kehamilan Ditemukan',
+              data: result,
+            };
+          }
+        },
+        {
+          headers: t.Object({ 'x-api-key': t.String() }),
+        }
+      )
   )
   .group('/penyakit', (app) =>
     app
